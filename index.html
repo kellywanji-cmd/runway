@@ -238,6 +238,16 @@ canvas.chart{width:100%;height:190px;display:block;margin-top:8px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .form-grid .full{grid-column:1/-1}
 .footer-note{color:var(--faint);font-size:12px;margin:22px 0 10px}
+textarea#imp-box{
+  width:100%;height:88px;margin:8px 0;resize:vertical;
+  background:var(--panel2);border:1px solid var(--line);color:var(--dim);
+  border-radius:10px;padding:10px 12px;font-size:12px;
+  font-family:'Spline Sans Mono',monospace;
+}
+textarea#imp-box:focus{outline:2px solid var(--gold);border-color:transparent}
+.imp-day{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.imp-day:last-child{border-bottom:none}
+.imp-day b{font-weight:600}
 textarea#bk-box{
   width:100%;height:96px;margin:8px 0;resize:vertical;
   background:var(--panel2);border:1px solid var(--line);color:var(--dim);
@@ -255,7 +265,7 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
 
 <header>
   <div class="head-top">
-    <div class="eyebrow">Kelly · 21 Jul 2026 → end of 2027</div>
+    <div class="eyebrow">Kelly · 29 Jul 2026 → end of 2027</div>
   </div>
   <div class="title-row">
     <h1>Runway</h1>
@@ -341,7 +351,7 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
       <div class="od-pin ghostpin" id="od-low" data-l=""></div>
     </div>
     <div class="od-note" id="od-note"></div>
-    <div class="od-note" style="margin-top:8px;color:var(--faint)">Cost of carrying £1,000 for a year: overdraft £290 (29.0% EAR) · Amex £291 (2.15%/mo) · Flex £242 at the standard 24%, or £0 on a 3-month plan. The overdraft and the Amex cost the same — but the overdraft stops dead at £2,000 while the Amex has £6,768 spare, so the Amex is the safer place to carry a balance. Flex money transfers are not available on your account.</div>
+    <div class="od-note" style="margin-top:8px;color:var(--faint)">The overdraft (29.0% EAR, £2,000 limit) is a buffer, not planned borrowing — you are currently £1,217 in credit. Flex is the cheap facility at 0% on a 3-month plan (each purchase £100+), so living costs that need spreading go there. The Monzo loan is fixed at 5.8%.</div>
   </div>
 </div>
 
@@ -355,26 +365,6 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
 
 <!-- ============ MORE ============ -->
 <div class="page" id="pg-more">
-  <div class="card">
-    <h2>The trip <span class="tag">one, not two</span></h2>
-    <div class="toggle-row">
-      <div style="flex:1">
-        <div style="font-size:14px">Fund it on Flex (3 months, 0%)</div>
-        <div style="color:var(--dim);font-size:12px">Keeps the cash out of the danger window. Instalments land 21 Sep / Oct / Nov.</div>
-      </div>
-      <label class="switch"><input type="checkbox" id="trip-flex"><span class="slider"></span></label>
-    </div>
-    <div class="env">
-      <div class="env-top"><span>Budget £<span id="trip-budget-show">500</span></span><span class="mono" id="trip-spent-show">—</span></div>
-      <div class="bar"><i id="trip-bar"></i></div>
-    </div>
-    <div class="spent-row">
-      <input type="number" inputmode="decimal" id="trip-in" placeholder="What it actually cost…">
-      <button class="ghost" id="trip-save">Save</button>
-    </div>
-    <div class="pnote">HK 2–3 nts realistically £650–800 · Bangkok solo £450–550 · solo Samui £800+ (no villa split). Change the number and the instalments and forecast update themselves.</div>
-  </div>
-
   <div class="card">
     <h2>Your additions <span class="tag">life happens</span></h2>
     <div id="cust-list"></div>
@@ -395,7 +385,19 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
       <input type="number" inputmode="decimal" step="0.01" id="fx-in" placeholder="S$ per £ (1.70)">
       <button class="ghost" id="fx-save">Set rate</button>
     </div>
-    <div class="pnote">Pay rises, inflation, a different envelope: open any phase in Plan and set its income or envelope directly — the forecast follows. Rates modelled: overdraft 29.0% EAR (daily), Amex 2.15% a month on the statement date, postgrad loan 7.3% a year. Flex living plans assume the 3-month 0% promotion, which needs each individual purchase to be £100 or more — smaller ones are only 0% if cleared on the next payment date. Left alone, a purchase defaults to 24 months at 24% APR. Amex minimums are computed from your statement formula: a month of interest, plus 2% of the balance, plus a twelfth of the annual fee (set to £650 — change it in the code comment if yours differs, or just edit the payment). The Barclaycard schedule assumes the old promo dies March 2027 and the £490 tranche rides at 0% to July 2027.</div>
+    <div class="pnote">Open any phase in Plan and set its income or envelope directly — the forecast follows. Rates modelled: overdraft 29.0% EAR (daily), Monzo loan 5.8% fixed, postgrad loan and Plan 2 both 6% (capped Sep 2026–Aug 2027). The Monzo loan is £700/mo on the 28th plus overpayments — it has no early-repayment fee, so it clears on 28 April 2027 instead of running to November. Barclaycard is sized to clear on 28 February, a month before its promotional deadline. Change any amount and the rest of that debt resizes itself so the total still clears.</div>
+  </div>
+
+  <div class="card">
+    <h2>Import spending <span class="tag">paste a statement export</span></h2>
+    <textarea id="imp-box" placeholder="Paste a CSV export here — Monzo or any statement with a date, description and amount."></textarea>
+    <div class="spent-row" style="margin-top:0">
+      <button class="ghost" id="imp-read">Read it</button>
+      <button class="ghost" id="imp-clear">Clear</button>
+    </div>
+    <div id="imp-preview"></div>
+    <button id="imp-apply" style="width:100%;margin-top:10px;display:none">Apply to the calendar</button>
+    <div class="pnote">It works out which column is which, so any export should do. Anything already in your plan — card payments, the loan, bills, subs, commute, Mounjaro — is left out so it isn't counted twice; tap the line to see what was skipped. Days you import overwrite whatever was logged for them.</div>
   </div>
 
   <div class="card">
@@ -407,7 +409,7 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
     </div>
     <textarea id="bk-box" placeholder="Tap “Show my data”, then Copy. To restore, paste a backup here and tap Restore."></textarea>
     <button class="ghost" id="bk-import" style="width:100%">Restore from the box</button>
-    <div class="pnote">Your entries live in whichever browser address you opened this from, so they don't travel with the file. Before moving it to GitHub Pages — or a new phone — copy your data here and paste it in on the other side. Restoring replaces everything currently saved.</div>
+    <div class="pnote">Your entries live in whichever browser address you opened this from, so they don't travel with the file. Before moving it to GitHub Pages — or a new phone — copy your data here and paste it in on the other side. Restoring replaces your logged days, ticks and edits — but it will not reinstate an out-of-date balance or old plan settings, so a backup taken before a plan change is still safe to use.</div>
   </div>
 
   <div class="footer-note">
@@ -430,107 +432,112 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
 <script>
 "use strict";
 /* ============ PLAN DATA (21 Jul 2026 position, post-£475.50 transfer) ============ */
-const START = { amex: 2809.91, flex: 1035.26, loan: 5598.05, bcard: 7574.77, od: 920.10 };
+const START = { flex: 1322.90, loan: 10300.94, bcard: 7574.26, od: -1216.75 }; // od negative = in credit; loan is the new 5.8% facility
 const P = [
  {id:"p1", n:"01", title:"Singapore run-down", from:"2026-07-21", to:"2026-08-20", cur:"S$", envelope:930, income:0,
   note:"Daily cap S$30 average. Everything in this phase is in S$ (set the rate in More). One-offs below sit outside the cap.",
   oneoffs:[
-    {id:"o-drinks1", label:"Party drinks · 26 Jul", amt:135},
+    {id:"o-drinks1", label:"J&J outing · 1 Aug", amt:135},
     {id:"o-subs", label:"Subs + Singtel + O2 (~£110)", amt:185},
     {id:"o-skin", label:"Skincare / misc buffer", amt:200},
-    {id:"o-legroom", label:"Extra legroom seat (~£100, optional)", amt:170, optional:true},
-    {id:"o-drinks2", label:"Pre-drinks · 20 Aug", amt:70}
+       {id:"o-drinks2", label:"Pre-drinks · 20 Aug", amt:70}
   ]},
  {id:"p2", n:"02", title:"The bridge", from:"2026-08-21", to:"2026-09-24", cur:"£", envelope:810, income:4300, payday:"2026-08-21",
   note:"£810 covers the last Singapore week, living 1–13 Sep, and lunches once you start on the 14th. Hair and nails are budgeted on 1 Sep, before you start. This stretch runs closest to the overdraft limit — check the Picture weekly. Running low in the final week is planned, not failure."},
- {id:"p3", n:"03", title:"First Carpmaels pay", from:"2026-09-25", to:"2026-10-24", cur:"£", envelope:830, income:3000, incomeEditable:true, payday:"2026-09-25",
-  note:"About £500 of October living goes on the Flex card (0% over three instalments) — that is what keeps the account inside the overdraft this month. Amex stays on the minimum. Council tax, energy and cleaner stay with B until next phase. Set the real pay below when the payslip lands."},
- {id:"p4", n:"04", title:"Full pay · bills begin", from:"2026-10-25", to:"2026-11-24", cur:"£", envelope:910, income:4900, payday:"2026-10-25",
-  note:"You take over council tax, energy and the cleaner, and hair + beauty starts. Barclaycard stays on the 1% minimum — every spare pound goes at the Amex while it is the only thing charging interest."},
- {id:"p5", n:"05", title:"Steady state", from:"2026-11-25", to:"2026-12-24", cur:"£", envelope:910, income:4900, payday:"2026-11-25",
-  note:"Amex clears on the 25th — cancel it after for the pro-rata refund, moving any billing off first. Barclaycard goes full steam from next phase."},
- {id:"p6", n:"06", title:"Steady state", from:"2026-12-25", to:"2027-01-24", cur:"£", envelope:910, income:4900, payday:"2026-12-25", note:""},
- {id:"p7", n:"07", title:"Last Mounjaro month", from:"2027-01-25", to:"2027-02-24", cur:"£", envelope:910, income:4900, payday:"2027-01-25",
+ {id:"p3", n:"03", title:"First Carpmaels pay", from:"2026-09-25", to:"2026-10-24", cur:"£", envelope:830, income:3470, incomeEditable:true, payday:"2026-09-25",
+  note:"First Carpmaels payslip lands around the 25th–28th. The £700 loan payment is on the 28th — if the payslip is late for a mid-month joiner, that payment is the one at risk, so watch the date. Council tax, energy and cleaner stay with B until next phase."},
+ {id:"p4", n:"04", title:"Full pay · bills begin", from:"2026-10-25", to:"2026-11-24", cur:"£", envelope:910, income:5000, payday:"2026-10-25",
+  note:"You take over council tax, energy and the cleaner, and hair + beauty starts. From here the spare cash clears Barclaycard (gone by 28 February, a month before the deadline) while overpaying the Monzo loan alongside — the loan clears by April, well ahead of its 5.8% schedule."},
+ {id:"p5", n:"05", title:"Steady state", from:"2026-11-25", to:"2026-12-24", cur:"£", envelope:910, income:5000, payday:"2026-11-25",
+  note:"Barclaycard is on its way out — cleared 28 February, a month before the promo deadline. Amex Gold membership fee (£195) falls on 28 Nov."},
+ {id:"p6", n:"06", title:"Steady state", from:"2026-12-25", to:"2027-01-24", cur:"£", envelope:910, income:5000, payday:"2026-12-25", note:""},
+ {id:"p7", n:"07", title:"Last Mounjaro month", from:"2027-01-25", to:"2027-02-24", cur:"£", envelope:910, income:5000, payday:"2027-01-25",
   note:"Trying from April means the last dose lands in February (≥1-month washout — confirm the stop date with your prescriber). Christmas comes from the spare, not on top of it."},
- {id:"p8", n:"08", title:"Loan dies", from:"2027-02-25", to:"2027-03-24", cur:"£", envelope:910, income:4900, payday:"2027-02-25",
-  note:"Final loan payment 21 March. One Barclaycard payment left after this."},
- {id:"p9", n:"09", title:"Zero", from:"2027-03-25", to:"2027-04-24", cur:"£", envelope:910, income:4900, payday:"2027-03-25",
-  note:"Last Barclaycard payment clears everything. £200/mo to Mum resumes. Chapter 2 starts next phase — buffer, the postgrad loan, and breathing room on purpose."},
- {id:"p10", n:"10", title:"Chapter 2 · buffer + PGL", from:"2027-04-25", to:"2027-05-24", cur:"£", envelope:910, income:4900, payday:"2027-04-25",
-  note:"Consumer debt is gone; the postgrad loan is the new target — at a pace that leaves ~£500/mo yours. Payroll has been chipping it all along and interest has been added, so the balance you see on Picture is the live one; correct it there against SLC whenever you check."},
- {id:"p11", n:"11", title:"PGL, steadily", from:"2027-05-25", to:"2027-06-24", cur:"£", envelope:910, income:4900, payday:"2027-05-25",
+ {id:"p8", n:"08", title:"Barclaycard gone", from:"2027-02-25", to:"2027-03-24", cur:"£", envelope:910, income:5000, payday:"2027-02-25",
+  note:"Barclaycard is cleared on 28 February. From here every spare pound goes at the Monzo loan."},
+ {id:"p9", n:"09", title:"Loan, final stretch", from:"2027-03-25", to:"2027-04-24", cur:"£", envelope:910, income:5000, payday:"2027-03-25",
+  note:"£200/mo to Mum resumes. The loan is nearly gone — it clears next phase, on 28 April. Chapter 2 starts after that phase — buffer, the postgrad loan, and breathing room on purpose."},
+ {id:"p10", n:"10", title:"Debt-free · loan clears", from:"2027-04-25", to:"2027-05-24", cur:"£", envelope:910, income:5000, payday:"2027-04-25",
+  note:"The loan clears on 28 April — that is consumer debt gone. From next phase the postgrad loan is the target, at a pace that leaves ~£500/mo yours. Payroll has been chipping it all along and interest has been added, so the balance you see on Picture is the live one; correct it there against SLC whenever you check."},
+ {id:"p11", n:"11", title:"Chapter 2 · buffer + PGL", from:"2027-05-25", to:"2027-06-24", cur:"£", envelope:910, income:5000, payday:"2027-05-25",
   note:"£1,800 at the loan — deliberate pace, not monk-mode. ~£700/mo stays yours for the life part."},
- {id:"p12", n:"12", title:"PGL, steadily", from:"2027-06-25", to:"2027-07-24", cur:"£", envelope:910, income:4900, payday:"2027-06-25", note:""},
- {id:"p13", n:"13", title:"PGL cleared", from:"2027-07-25", to:"2027-08-24", cur:"£", envelope:910, income:4900, payday:"2027-07-25",
+ {id:"p12", n:"12", title:"PGL, steadily", from:"2027-06-25", to:"2027-07-24", cur:"£", envelope:910, income:5000, payday:"2027-06-25", note:""},
+ {id:"p13", n:"13", title:"PGL cleared", from:"2027-07-25", to:"2027-08-24", cur:"£", envelope:910, income:5000, payday:"2027-07-25",
   note:"Ask SLC for a settlement figure and clear the tail — then tell payroll. The ~£470/mo deduction stops and joins your surplus from the next payslip."},
- {id:"p14", n:"14", title:"Surplus, allocated", from:"2027-08-25", to:"2027-09-24", cur:"£", envelope:910, income:5370, payday:"2027-08-25",
+ {id:"p14", n:"14", title:"Surplus, allocated", from:"2027-08-25", to:"2027-09-24", cur:"£", envelope:910, income:5470, payday:"2027-08-25",
   note:"Take-home rises ~£470 with the PGL gone. Defaults: £1,500 ISA + £1,000 cash fund (house, baby, the surgery pot) — leaving ~£770/mo to actually enjoy. Holidays and dinners are the point of the surplus, not a leak."},
- {id:"p15", n:"15", title:"Steady", from:"2027-09-25", to:"2027-10-24", cur:"£", envelope:910, income:5370, payday:"2027-09-25", note:""},
- {id:"p16", n:"16", title:"Steady", from:"2027-10-25", to:"2027-11-24", cur:"£", envelope:910, income:5370, payday:"2027-10-25", note:""},
- {id:"p17", n:"17", title:"Year end", from:"2027-11-25", to:"2027-12-24", cur:"£", envelope:910, income:5370, payday:"2027-11-25",
+ {id:"p15", n:"15", title:"Steady", from:"2027-09-25", to:"2027-10-24", cur:"£", envelope:910, income:5470, payday:"2027-09-25", note:""},
+ {id:"p16", n:"16", title:"Steady", from:"2027-10-25", to:"2027-11-24", cur:"£", envelope:910, income:5470, payday:"2027-10-25", note:""},
+ {id:"p17", n:"17", title:"Year end", from:"2027-11-25", to:"2027-12-24", cur:"£", envelope:910, income:5470, payday:"2027-11-25",
   note:"Christmas comes from the surplus rows, not the envelope. A year and a half from the starting line."}
 ];
 const PAY = [
- {id:"loan-aug", ph:"p2", date:"2026-08-21", label:"Monzo loan", amt:700, debt:"loan"},
- {id:"flex-aug", ph:"p2", date:"2026-08-21", label:"Monzo Flex", amt:800, debt:"flex"},
- {id:"amex-1", ph:"p2", date:"2026-08-21", label:"Amex — contractual minimum", amt:171, debt:"amex", amexMin:true},
+ {id:"loan-2026-08-28", ph:"p2", date:"2026-08-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2026-09-28", ph:"p3", date:"2026-09-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2026-10-28", ph:"p4", date:"2026-10-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2026-11-28", ph:"p5", date:"2026-11-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2026-12-28", ph:"p6", date:"2026-12-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2027-01-28", ph:"p7", date:"2027-01-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2027-02-28", ph:"p8", date:"2027-02-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loan-2027-03-28", ph:"p9", date:"2027-03-28", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"loanop-2026-10-28", ph:"p4", date:"2026-10-28", label:"Monzo loan — overpay", amt:450, debt:"loan", loanExtra:true},
+ {id:"loanfinal", ph:"p10", date:"2027-04-28", label:"Monzo loan — clears it", amt:0, debt:"loan", loanFinal:true},
+ {id:"loanop-2026-11-28", ph:"p5", date:"2026-11-28", label:"Monzo loan — overpay", amt:250, debt:"loan", loanExtra:true},
+ {id:"loanop-2026-12-28", ph:"p6", date:"2026-12-28", label:"Monzo loan — overpay", amt:350, debt:"loan", loanExtra:true},
+ {id:"loanop-2027-01-28", ph:"p7", date:"2027-01-28", label:"Monzo loan — overpay", amt:350, debt:"loan", loanExtra:true},
+ {id:"loanop-2027-02-28", ph:"p8", date:"2027-02-28", label:"Monzo loan — overpay", amt:550, debt:"loan", loanExtra:true},
+ {id:"trip-cash", ph:"p2", date:"2026-08-22", label:"Trip (from account)", amt:500, debt:null},
+ {id:"goldfee-26", ph:"p5", date:"2026-11-28", label:"Amex Gold membership fee", amt:195, debt:null},
+ {id:"goldfee-27", ph:"p17", date:"2027-11-28", label:"Amex Gold membership fee", amt:195, debt:null},
+ {id:"flex-aug", ph:"p2", date:"2026-08-21", label:"Monzo Flex", amt:854, debt:"flex"},
  {id:"subs-sep", ph:"p2", date:"2026-09-01", label:"Subs", amt:91, debt:null},
  {id:"hair-p2", ph:"p2", date:"2026-09-01", label:"Hair + beauty — before you start", amt:250, debt:null},
  {id:"bcmin-sep", ph:"p2", date:"2026-09-07", label:"Barclaycard minimum (1%)", amt:76, debt:"bcard", bcMin:true},
- {id:"commute-sep", ph:"p2", date:"2026-09-14", label:"Flexi ticket + bus, to payday", amt:260, debt:null},
- {id:"flex-sep", ph:"p2", date:"2026-09-21", label:"Monzo Flex", amt:240, debt:"flex"},
- {id:"loan-sep", ph:"p2", date:"2026-09-21", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"commute-sep", ph:"p2", date:"2026-09-14", label:"Commute — rail + bus, to payday", amt:260, debt:null},
+ {id:"flex-sep", ph:"p2", date:"2026-09-21", label:"Monzo Flex", amt:346, debt:"flex"},
+ {id:"flex-oct", ph:"p3", date:"2026-10-21", label:"Monzo Flex — final instalment", amt:122.90, debt:"flex"},
 
- {id:"amex-2", ph:"p3", date:"2026-09-25", label:"Amex — contractual minimum", amt:171, debt:"amex", amexMin:true},
  {id:"mj-oct", ph:"p3", date:"2026-09-26", label:"Mounjaro restart", amt:200, debt:null},
  {id:"subs-oct", ph:"p3", date:"2026-10-01", label:"Subs", amt:91, debt:null},
- {id:"commute-oct", ph:"p3", date:"2026-10-01", label:"Commute (Flexi + tube + bus)", amt:450, debt:null},
+ {id:"commute-oct", ph:"p3", date:"2026-10-01", label:"Commute — rail + tube + bus", amt:450, debt:null},
  {id:"hair-p3", ph:"p3", date:"2026-10-01", label:"Hair + beauty", amt:250, debt:null},
- {id:"bcmin-oct", ph:"p3", date:"2026-10-07", label:"Barclaycard minimum (1%)", amt:75, debt:"bcard", bcMin:true},
- {id:"loan-oct", ph:"p3", date:"2026-10-21", label:"Monzo loan", amt:700, debt:"loan"},
+ {id:"bc-1", ph:"p4", date:"2026-10-28", label:"Barclaycard — clear it down", amt:0, debt:"bcard", bcClear:true},
 
- {id:"amex-3", ph:"p4", date:"2026-10-25", label:"Amex — big chunk", amt:1500, debt:"amex"},
- {id:"bcmin-nov", ph:"p4", date:"2026-11-07", label:"Barclaycard minimum (1%)", amt:74, debt:"bcard", bcMin:true},
+ {id:"bc-2", ph:"p5", date:"2026-11-28", label:"Barclaycard — clear it down", amt:0, debt:"bcard", bcClear:true},
  {id:"bills-nov", ph:"p4", date:"2026-11-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-nov", ph:"p4", date:"2026-11-01", label:"Subs", amt:91, debt:null},
  {id:"mj-nov", ph:"p4", date:"2026-11-01", label:"Mounjaro", amt:200, debt:null},
  {id:"commute-nov", ph:"p4", date:"2026-11-01", label:"Commute", amt:450, debt:null},
  {id:"hair-p4", ph:"p4", date:"2026-11-01", label:"Hair + beauty", amt:250, debt:null},
- {id:"loan-nov", ph:"p4", date:"2026-11-21", label:"Monzo loan", amt:700, debt:"loan"},
 
- {id:"amex-4", ph:"p5", date:"2026-11-25", label:"Amex — clears the balance, then cancel", amt:1385, debt:"amex", amexClear:true},
- {id:"bcmin-dec", ph:"p5", date:"2026-12-07", label:"Barclaycard minimum (1%)", amt:73, debt:"bcard", bcMin:true},
+
  {id:"bills-dec", ph:"p5", date:"2026-12-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-dec", ph:"p5", date:"2026-12-01", label:"Subs", amt:91, debt:null},
  {id:"mj-dec", ph:"p5", date:"2026-12-01", label:"Mounjaro", amt:200, debt:null},
  {id:"commute-dec", ph:"p5", date:"2026-12-01", label:"Commute", amt:450, debt:null},
  {id:"hair-p5", ph:"p5", date:"2026-12-01", label:"Hair + beauty", amt:250, debt:null},
- {id:"loan-dec", ph:"p5", date:"2026-12-21", label:"Monzo loan", amt:700, debt:"loan"},
 
- {id:"bc-3", ph:"p6", date:"2026-12-28", label:"Barclaycard — full steam 1 of 4", amt:0, debt:"bcard", bcClear:true},
+ {id:"bc-3", ph:"p6", date:"2026-12-28", label:"Barclaycard — clear it down", amt:0, debt:"bcard", bcClear:true},
  {id:"bills-jan", ph:"p6", date:"2027-01-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-jan", ph:"p6", date:"2027-01-01", label:"Subs", amt:91, debt:null},
  {id:"mj-jan", ph:"p6", date:"2027-01-01", label:"Mounjaro", amt:200, debt:null},
  {id:"commute-jan", ph:"p6", date:"2027-01-01", label:"Commute", amt:450, debt:null},
  {id:"hair-p6", ph:"p6", date:"2027-01-01", label:"Hair + beauty", amt:250, debt:null},
- {id:"loan-jan", ph:"p6", date:"2027-01-21", label:"Monzo loan", amt:700, debt:"loan"},
 
- {id:"bc-4", ph:"p7", date:"2027-01-28", label:"Barclaycard — full steam 2 of 4", amt:0, debt:"bcard", bcClear:true},
+ {id:"bc-4", ph:"p7", date:"2027-01-28", label:"Barclaycard — clear it down", amt:0, debt:"bcard", bcClear:true},
  {id:"bills-feb", ph:"p7", date:"2027-02-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-feb", ph:"p7", date:"2027-02-01", label:"Subs", amt:91, debt:null},
  {id:"mj-feb", ph:"p7", date:"2027-02-01", label:"Mounjaro — last one", amt:200, debt:null},
  {id:"commute-feb", ph:"p7", date:"2027-02-01", label:"Commute", amt:450, debt:null},
  {id:"hair-p7", ph:"p7", date:"2027-02-01", label:"Hair + beauty", amt:250, debt:null},
- {id:"loan-feb", ph:"p7", date:"2027-02-21", label:"Monzo loan", amt:700, debt:"loan"},
 
- {id:"bc-5", ph:"p8", date:"2027-02-28", label:"Barclaycard — full steam 3 of 4", amt:0, debt:"bcard", bcClear:true},
+ {id:"bc-5", ph:"p8", date:"2027-02-28", label:"Barclaycard — clear it down", amt:0, debt:"bcard", bcClear:true},
  {id:"bills-mar", ph:"p8", date:"2027-03-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-mar", ph:"p8", date:"2027-03-01", label:"Subs", amt:91, debt:null},
  {id:"commute-mar", ph:"p8", date:"2027-03-01", label:"Commute", amt:450, debt:null},
  {id:"hair-p8", ph:"p8", date:"2027-03-01", label:"Hair + beauty", amt:250, debt:null},
- {id:"loan-mar", ph:"p8", date:"2027-03-21", label:"Monzo loan — FINAL", amt:698, debt:"loan"},
 
- {id:"bc-6", ph:"p9", date:"2027-03-28", label:"Barclaycard — final, clears it (4 of 4)", amt:0, debt:"bcard", bcClear:true},
+ {id:"bc-6", ph:"p9", date:"2027-03-28", label:"Barclaycard — clear it down", amt:0, debt:"bcard", bcClear:true},
  {id:"bills-apr", ph:"p9", date:"2027-04-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-apr", ph:"p9", date:"2027-04-01", label:"Subs", amt:91, debt:null},
  {id:"commute-apr", ph:"p9", date:"2027-04-01", label:"Commute", amt:450, debt:null},
@@ -544,8 +551,8 @@ const PAY = [
  {id:"hair-p10", ph:"p10", date:"2027-05-01", label:"Hair + beauty", amt:250, debt:null},
  {id:"hol-p10", ph:"p10", date:"2027-05-01", label:"Holiday fund", amt:400, debt:null},
  {id:"mum-p10", ph:"p10", date:"2027-04-25", label:"Mum", amt:200, debt:null},
- {id:"buf-p10", ph:"p10", date:"2027-04-25", label:"Emergency buffer — first £800", amt:800, debt:null},
- {id:"pgl-p10", ph:"p10", date:"2027-04-25", label:"PGL overpayment", amt:1200, debt:"pgl"},
+ 
+ 
 
  {id:"bills-p11", ph:"p11", date:"2027-06-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-p11", ph:"p11", date:"2027-06-01", label:"Subs", amt:91, debt:null},
@@ -553,7 +560,8 @@ const PAY = [
  {id:"hair-p11", ph:"p11", date:"2027-06-01", label:"Hair + beauty", amt:250, debt:null},
  {id:"hol-p11", ph:"p11", date:"2027-06-01", label:"Holiday fund", amt:400, debt:null},
  {id:"mum-p11", ph:"p11", date:"2027-05-25", label:"Mum", amt:200, debt:null},
- {id:"pgl-p11", ph:"p11", date:"2027-05-25", label:"PGL overpayment", amt:1500, debt:"pgl"},
+ {id:"buf-p11", ph:"p11", date:"2027-05-25", label:"Emergency buffer — first £800", amt:800, debt:null},
+ {id:"pgl-p11", ph:"p11", date:"2027-05-25", label:"PGL overpayment", amt:900, debt:"pgl"},
 
  {id:"bills-p12", ph:"p12", date:"2027-07-01", label:"Council tax + energy + cleaner", amt:443, debt:null},
  {id:"subs-p12", ph:"p12", date:"2027-07-01", label:"Subs", amt:91, debt:null},
@@ -610,11 +618,11 @@ const PAY = [
 /* ============ state + storage ============ */
 const KEY="k-rtz-v1";
 let S = {
-  spend:{}, pays:{}, oneoffs:{}, trip:{onFlex:true, budget:500, actual:null},
-  legroom:false, balance:{v:-920.10, at:"2026-07-21"}, incomes:{}, custom:[],
+  spend:{}, pays:{}, oneoffs:{}, trip:{onFlex:false, budget:500, actual:null},
+  balance:{v:1216.75, at:"2026-07-29"}, incomes:{}, custom:[],
   pgl:{start:10091.50, at:"2026-07-20", rate:6.0, dedCC:200, dedSep:221, dedNew:470},
   plan2:{v:139940.18, at:"2026-07-20", rate:6.0, dedCC:237, dedSep:268, dedNew:642},
-  acct:{}, amounts:{}, env:{}, rate:1.70, b30:{on:true, amt:500, onFlex:true}, flexOct:{on:true, amt:500}, flexAug:{on:true, amt:450}, flexSep:{on:true, amt:700}, rates:{od:29.0, amex:2.15}, flexDay:21, flexLimit:2500, amexLimit:12400, amexFee:650
+  acct:{}, amounts:{}, env:{}, rate:1.70, b30:{on:true, amt:500, onFlex:false}, flexOct:{on:false, amt:500}, flexAug:{on:false, amt:450}, flexSep:{on:false, amt:700}, rates:{od:29.0}, flexDay:21, flexLimit:2500
 };
 let store=(()=>{
   try{ if(window.storage) return "claude"; }catch(e){}
@@ -622,6 +630,29 @@ let store=(()=>{
   return "none";
 })();
 let saveT=null;
+function migrate(){
+  if(!S.pgl||S.pgl.start==null||S.pgl.start===7000||S.pgl.rate===7.3) S.pgl={start:10091.50,at:"2026-07-20",rate:6.0,dedCC:200,dedSep:221,dedNew:470};
+  if(!S.plan2||S.plan2.rate==null) S.plan2={v:(S.plan2&&S.plan2.v!=null?S.plan2.v:139940.18),at:"2026-07-20",rate:6.0,dedCC:237,dedSep:268,dedNew:642};
+  if(!S.acct) S.acct={};
+  if(!S.b30) S.b30={on:true,amt:500,onFlex:true};
+  if(S.b30.amt===1000) S.b30.amt=500;
+  if(!S.flexOct) S.flexOct={on:false,amt:500};
+  if(!S.flexAug) S.flexAug={on:false,amt:450};
+  if(!S.flexSep) S.flexSep={on:false,amt:700};
+  // nothing new goes on Flex any more — force off, including for saves made before this change
+  S.flexAug.on=false; S.flexSep.on=false; S.flexOct.on=false;
+  if(S.trip) S.trip.onFlex=false;
+  if(S.b30) S.b30.onFlex=false;
+  if(!S.rates) S.rates={od:29.0};
+  if(S.flexDay==null) S.flexDay=21;
+  if(S.flexLimit==null) S.flexLimit=2500;
+  // a restored backup must never reinstate a stale current-account anchor
+  if(!S.balance || S.balance.at < "2026-07-29"){ S.balance={v:1216.75, at:"2026-07-29"}; }
+  if(!S.custom) S.custom=[];
+  if(!S.spend) S.spend={};
+  if(!S.pays) S.pays={};
+  if(!S.oneoffs) S.oneoffs={};
+}
 async function load(){
   if(store==="none"){document.getElementById("storage-banner").style.display="block";return;}
   try{
@@ -692,11 +723,11 @@ let selDay=null, editPay=null, editOO=null, openPhases=null, activeTab="pg-today
 function bucketFor(d){ return d<P[0].from ? "pre" : phaseOf(d).id; }
 function flexBuys(){
   const o=[];
-  if(S.trip.onFlex) o.push({date:"2026-07-27", amt:tripCost(), label:"trip"});
   if(S.flexAug&&S.flexAug.on!==false) o.push({date:"2026-08-10", amt:(S.flexAug.amt!=null?S.flexAug.amt:450), label:"Aug living", living:true});
   if(S.flexSep&&S.flexSep.on!==false) o.push({date:"2026-09-18", amt:(S.flexSep.amt!=null?S.flexSep.amt:700), label:"Sep living", living:true});
   if(S.flexOct&&S.flexOct.on!==false) o.push({date:"2026-10-01", amt:(S.flexOct.amt!=null?S.flexOct.amt:500), label:"Oct living", living:true});
   if(S.b30&&S.b30.on!==false&&S.b30.onFlex!==false) o.push({date:"2026-10-09", amt:(S.b30.amt!=null?S.b30.amt:500), label:"B's 30th"});
+  if(S.trip.onFlex) o.push({date:"2026-07-29", amt:tripCost(), label:"trip"});
   return o.filter(x=>x.amt>0);
 }
 function flexDates(purchase){
@@ -719,34 +750,28 @@ function flexAdd(list, date, amt, label){
   else list.push({id:"flexx-"+date, ph:phaseOf(date).id, date:date, label:"Monzo Flex — "+label, amt:amt, debt:"flex"});
 }
 function thirds(total){ const a=Math.ceil(total/3), b=Math.ceil((total-a)/2); return [a,b,total-a-b]; }
-/* Barclaycard: minimums (1% of balance) while the Amex is alive, then whatever
+/* Barclaycard: 1% minimums for now, then whatever
    clears the rest by the promo deadline — recomputed from what's actually been paid. */
-function statementsBetween(from,to){
-  let n=0; const d=D(from); let y=d.getFullYear(), m=d.getMonth();
-  let s=ISO(new Date(y,m,25));
-  while(s<=to){ if(s>from) n++; m++; s=ISO(new Date(y,m,25)); }
-  return n;
-}
-function amexSchedule(list){
-  const rows=list.filter(x=>x.debt==="amex").sort((a,b)=>a.date<b.date?-1:1);
-  let bal=(S.acct&&S.acct.amex&&S.acct.amex.v!=null)?S.acct.amex.v:START.amex;
-  const mo=(S.rates&&S.rates.amex!=null?S.rates.amex:2.15)/100;
-  const feeMo=((S.amexFee!=null?S.amexFee:650)/12);
-  let cursor=(S.acct&&S.acct.amex&&S.acct.amex.at)?S.acct.amex.at:todayISO();
-  for(const r of rows){
-    const n=statementsBetween(cursor,r.date);
-    let lastInt=0;
-    for(let i=0;i<n;i++){ lastInt=Math.max(0,bal)*mo; bal+=lastInt; }
-    cursor=r.date;
-    const rec=S.pays[r.id];
-    const setAmt=(S.amounts&&S.amounts[r.id]!=null)?S.amounts[r.id]:null;
+function loanSchedule(list){
+  // final payment clears the exact remaining balance after interest
+  const rows=list.filter(x=>x.debt==="loan").sort((a,b)=>a.date<b.date?-1:1);
+  let bal=(S.acct&&S.acct.loan&&S.acct.loan.v!=null)?S.acct.loan.v:START.loan;
+  const r=(S.loanRate!=null?S.loanRate:0.058)/12;
+  const start=(S.acct&&S.acct.loan&&S.acct.loan.at)?S.acct.loan.at:"2026-07-29";
+  let lastDate=null;
+  for(const row of rows){
+    const rec=S.pays[row.id];
+    const setAmt=(S.amounts&&S.amounts[row.id]!=null)?S.amounts[row.id]:null;
+    // accrue one month of interest per distinct payment DATE, not per row
+    // (a base payment and an overpayment on the same day must not be charged twice)
+    if(row.date!==lastDate){ bal*=(1+r); lastDate=row.date; }
     let pay;
-    if(rec&&rec.done) pay=(rec.actual!=null?rec.actual:(setAmt!=null?setAmt:r.amt));
+    if(rec&&rec.done) pay=(rec.actual!=null?rec.actual:(setAmt!=null?setAmt:row.amt));
     else if(setAmt!=null) pay=setAmt;
-    else if(r.amexMin){ pay=Math.max(25, Math.round(lastInt+Math.max(0,bal)*0.02+feeMo)); r.amt=pay; }
-    else if(r.amexClear){ pay=Math.max(0, Math.round(bal*100)/100); r.amt=pay; }
-    else pay=r.amt;
+    else if(row.loanFinal || bal<=row.amt){ pay=Math.max(0,Math.round(bal*100)/100); row.amt=pay; }
+    else pay=row.amt;
     bal-=pay;
+    if(bal<0.5) bal=0;
   }
   return list;
 }
@@ -763,12 +788,15 @@ function bcSchedule(list){
     if(r.bcClear){ pend.push(r); }
   }
   bal=Math.max(0,bal);
-  if(pend.length){
-    const per=Math.round(bal/pend.length);
+  // Clear across the first 3 payments (front-loaded), leaving later ones at zero.
+  const useN=Math.min(5,pend.length);
+  if(useN>0){
+    const per=Math.round(bal/useN);
     let acc=0;
     pend.forEach((r,i)=>{
-      if(i<pend.length-1){ r.amt=per; acc+=per; }
-      else r.amt=Math.max(0,Math.round((bal-acc)*100)/100);
+      if(i<useN-1){ r.amt=per; acc+=per; }
+      else if(i===useN-1){ r.amt=Math.max(0,Math.round((bal-acc)*100)/100); }
+      else { r.amt=0; }
     });
   }
   return list.filter(x=>!(x.bcClear && x.amt<=0 && !(S.pays[x.id]&&S.pays[x.id].done)));
@@ -777,8 +805,6 @@ function allPays(){
   let list = PAY.map(x=>Object.assign({},x));
   for(const b of flexBuys()){
     flexBuy(list,b.date,b.amt,b.label);
-    if(b.living) list.push({id:"flexcr-"+b.date, ph:phaseOf(b.date).id, date:b.date,
-      label:b.label+" paid on the Flex card instead", amt:-b.amt, debt:null, credit:true});
   }
   if(S.b30 && S.b30.on!==false && S.b30.onFlex===false)
     list.push({id:"b30", ph:"p3", date:"2026-10-09", label:"B's 30th", amt:(S.b30.amt!=null?S.b30.amt:500), debt:null});
@@ -792,7 +818,7 @@ function allPays(){
       list.push({id:"cust-"+c.id+"-"+p.id, ph:p.id, date:phFirstOfMonth(p), label:c.label, amt:c.amt, debt:null, custom:c.id});
     }
   }
-  list=amexSchedule(list);
+  list=loanSchedule(list);
   list=bcSchedule(list);
   return list.sort((a,b)=>a.date<b.date?-1:1);
 }
@@ -807,7 +833,6 @@ function envMath(){
     for(const pm of allPays()){ if(pm.ph===p.id){ const a=payActual(pm); if(a!=null) variance += (a-payAmt(pm)); } }
     let ooVar=0;
     (p.oneoffs||[]).forEach(o=>{
-      if(o.optional && !S.legroom) return;
       const rec=S.oneoffs[o.id];
       if(rec&&rec.done&&rec.actual!=null) ooVar += (rec.actual-o.amt);
     });
@@ -821,15 +846,15 @@ function envMath(){
   return out;
 }
 function debtsRemaining(){
-  const paid={amex:0,flex:0,loan:0,bcard:0,pgl:0};
+  const paid={flex:0,loan:0,bcard:0,pgl:0};
   for(const pm of allPays()){ const a=payActual(pm); if(a!=null && pm.debt) paid[pm.debt]+=a; }
-  let amex=START.amex - paid.amex, bcard=START.bcard - paid.bcard, flex=START.flex - paid.flex, loan=START.loan - paid.loan;
+  let bcard=START.bcard - paid.bcard, flex=START.flex - paid.flex, loan=START.loan - paid.loan;
   flex += flexBuys().reduce((s,b)=>s+b.amt,0);
   const od = S.balance.v<0 ? -S.balance.v : 0;
-  const rem = Math.max(0,amex)+Math.max(0,bcard)+Math.max(0,flex)+Math.max(0,loan)+od;
+  const rem = Math.max(0,bcard)+Math.max(0,flex)+Math.max(0,loan)+od;
   const pglStart=(S.pgl&&S.pgl.start!=null)?S.pgl.start:7000;
   const pglRem=Math.max(0,pglStart-paid.pgl);
-  return {rem, startTotal: START.amex+START.bcard+START.flex+START.loan+START.od, pglRem, pglStart, paid};
+  return {rem, startTotal: START.bcard+START.flex+START.loan, pglRem, pglStart, paid};
 }
 /* ============ forecast simulator ============ */
 function simulate(){
@@ -847,11 +872,12 @@ function simulate(){
     const amt = done ? payActual(pm) : payAmt(pm);
     (flowsByDate[eff]=flowsByDate[eff]||[]).push({pm, amt});
   });
-  const bal={amex:START.amex,bcard:START.bcard,flex:START.flex,loan:START.loan};
+  const bal={bcard:START.bcard,flex:START.flex,loan:START.loan};
   const fbuys=flexBuys();
   const A=S.acct||{};
   const pglCfg=S.pgl||{};
   let pgl=pglCfg.start!=null?pglCfg.start:10091.50;
+  const loanRate=(S.loanRate!=null?S.loanRate:0.058);
   const pglRate=(pglCfg.rate!=null?pglCfg.rate:7.3)/100;
   const dedFor=phId=>{
     if(phId==="p2") return pglCfg.dedCC!=null?pglCfg.dedCC:200;      // CC, £61,000
@@ -869,7 +895,6 @@ function simulate(){
   let bank=null, saved=0, flexPaid=0;
   const odEAR=(S.rates&&S.rates.od!=null?S.rates.od:29.0)/100;
   const odDaily=Math.pow(1+odEAR,1/365)-1;
-  const amexMo=(S.rates&&S.rates.amex!=null?S.rates.amex:2.15)/100;
   const series=[];
   let d=t0, guard=0;
   while(d<=tEnd && guard++<3000){
@@ -879,7 +904,6 @@ function simulate(){
     if(A.pgl&&A.pgl.at===d&&A.pgl.v!=null) pgl=A.pgl.v;
     if(d.slice(8)==="01" && pgl>0) pgl+=pgl*pglRate/12;
     if(d.slice(8)==="01" && p2bal>0) p2bal+=p2bal*p2Rate/12;
-    if(d.slice(8)==="25" && bal.amex>0.5) bal.amex+=bal.amex*amexMo;
     const p=phaseOf(d);
     const rf=p.cur==="S$"?rateFx():1;
     for(const ph of P){
@@ -916,8 +940,7 @@ function simulate(){
         if(p.id==="p1"){
           let oo=0;
           (p.oneoffs||[]).forEach(o=>{
-            if(o.optional && !S.legroom) return;
-            const rec=S.oneoffs[o.id];
+                  const rec=S.oneoffs[o.id];
             if(!(rec&&rec.done)) oo+=o.amt;
           });
           const left=Math.max(1,daysBetween(today,p.to));
@@ -927,8 +950,8 @@ function simulate(){
       }
       if(bank<0) bank-=(-bank)*odDaily;
     }
-    const totalDebt=bal.amex+bal.bcard+bal.flex+bal.loan+(bank!=null&&bank<0?-bank:0);
-    series.push({d, bank, totalDebt, saved, pgl, p2:p2bal, flexPaid, amex:bal.amex, bcard:bal.bcard, flex:bal.flex, loan:bal.loan});
+    const totalDebt=bal.bcard+bal.flex+bal.loan+(bank!=null&&bank<0?-bank:0);
+    series.push({d, bank, totalDebt, saved, pgl, p2:p2bal, flexPaid, bcard:bal.bcard, flex:bal.flex, loan:bal.loan});
     d=addDays(d,1);
   }
   return {series, today};
@@ -1055,7 +1078,7 @@ function buildPayRow(pm, t, container, ctxKey){
 function renderHeader(dr, t, at){
   const rem = at? at.totalDebt : dr.rem;
   const pglNow = at? at.pgl : dr.pglStart;
-  const ch2 = t>"2027-03-28" || rem<=0.5;
+  const ch2 = t>"2027-04-28" || rem<=0.5;
   const pglStart=(S.pgl&&S.pgl.start!=null)?S.pgl.start:10091.50;
   const pct = ch2 ? Math.min(100,Math.max(0,100*(1-pglNow/Math.max(1,pglStart))))
                   : Math.min(100,Math.max(0,100*(1-rem/dr.startTotal)));
@@ -1063,10 +1086,10 @@ function renderHeader(dr, t, at){
   document.getElementById("rw-left").innerHTML= ch2
     ? "£"+fm(pglNow)+"<small>postgrad loan left</small>"
     : "£"+fm(rem)+"<small>still to clear</small>";
-  const dleft=daysBetween(t,"2027-03-28");
+  const dleft=daysBetween(t,"2027-04-28");
   document.getElementById("rw-days").innerHTML= ch2
     ? (pglNow<=0.5 ? "PGL gone — ~£470/mo back in your pay" : "Chapter 2 · the postgrad loan")
-    : (dleft>0? "<b class='mono'>"+dleft+"</b> days to the last payment<br>28 Mar 2027" : "Chapter 1 done.");
+    : (dleft>0? "<b class='mono'>"+dleft+"</b> days to the last payment<br>28 Apr 2027" : "Chapter 1 done.");
   const lights=document.getElementById("rw-lights"); lights.innerHTML="";
   P.forEach(p=>{ const s=document.createElement("div"); s.className="rl"; lights.appendChild(s); });
 }
@@ -1162,12 +1185,6 @@ function renderPicture(t, dr, sim, at){
   }
   const bankNow = at.bank!=null?at.bank:S.balance.v;
   row("bank","Monzo current","limit −£2,000", bankNow, 0, {nobar:true, foot:"today", color:bankNow<0?"var(--coral)":"var(--mint)"});
-  const amexLimit=(S.amexLimit!=null?S.amexLimit:12400);
-  const amexFree=Math.max(0,amexLimit-at.amex);
-  const amexPct=100*amexFree/amexLimit;
-  const amexCol = amexPct<20?"var(--coral)" : amexPct<50?"var(--gold)" : "var(--mint)";
-  row("amex","Amex","£"+fm(amexFree)+" of £"+fm(amexLimit)+" still available",
-      at.amex, amexLimit, {barPct:amexPct, barColor:amexCol, foot:"owed now"});
   row("bcard","Barclaycard","old promo dies Mar '27 · £490 tranche 0% to Jul '27", at.bcard, START.bcard);
   const flexLimit=(S.flexLimit!=null?S.flexLimit:2500);
   const flexFree=Math.max(0,flexLimit-at.flex);
@@ -1175,7 +1192,7 @@ function renderPicture(t, dr, sim, at){
   const flexCol = freePct<20?"var(--coral)" : freePct<50?"var(--gold)" : "var(--mint)";
   row("flex","Monzo Flex","£"+fm(flexFree)+" of £"+fm(flexLimit)+" still available",
       at.flex, flexLimit, {barPct:freePct, barColor:flexCol, foot:"owed now"});
-  row("loan","Monzo loan","£700/mo · final 21 Mar", at.loan, START.loan);
+  row("loan","Monzo loan","5.8% · overpaying to clear by Apr 2027", at.loan, START.loan);
   row("pgl","Postgrad loan","£470 from October · "+((S.pgl&&S.pgl.rate)||6.0)+"% interest", at.pgl, (S.pgl&&S.pgl.start)||10091.50);
   const p2now=(at.p2!=null?at.p2:((S.plan2&&S.plan2.v!=null)?S.plan2.v:139940.18));
   row("plan2","Plan 2 loan","", p2now, 0, {nobar:true, foot:"tracked, not targeted"});
@@ -1212,12 +1229,6 @@ function renderPlan(t, cp, em){
     env.innerHTML="<div class='env-top'><span class='envlab'>Everyday envelope</span><span class='mono envfig'>"+cur+fm(m.spent,0)+" / "+cur+fm(m.effective,0)+(m.effective!==m.env?" <span style='color:var(--faint)'>(was "+fm(m.env,0)+")</span>":"")+"</span></div><div class='bar'><i class='"+(pct>100?"hot":pct>85?"":"cool")+"' style='width:"+Math.min(100,Math.max(2,pct))+"%'></i></div>";
     body.appendChild(env);
     (p.oneoffs||[]).forEach(o=>{
-      if(o.optional){
-        const row=document.createElement("div"); row.className="toggle-row";
-        row.innerHTML="<div style='flex:1;font-size:14px'>"+o.label+" · "+cur+o.amt+"</div><label class='switch'><input type='checkbox' "+(S.legroom?"checked":"")+"><span class='slider'></span></label>";
-        row.querySelector("input").onchange=e=>{S.legroom=e.target.checked; save(); render();};
-        body.appendChild(row); return;
-      }
       const rec=S.oneoffs[o.id]||{};
       const shown=rec.done&&rec.actual!=null?rec.actual:o.amt;
       const row=document.createElement("div"); row.className="pay";
@@ -1261,11 +1272,6 @@ function renderPlan(t, cp, em){
 /* ============ More page ============ */
 function phaseLabel(p){ return p.n+" · "+D(p.from).toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" – "+D(p.to).toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
 function renderMore(){
-  document.getElementById("trip-flex").checked=S.trip.onFlex;
-  const tc=S.trip.actual!=null?S.trip.actual:0;
-  document.getElementById("trip-spent-show").textContent=S.trip.actual!=null?"£"+fm(S.trip.actual)+" actual":"not logged yet";
-  const tb=document.getElementById("trip-bar"); const tpct=Math.min(100,(tc/S.trip.budget)*100);
-  tb.style.width=(S.trip.actual!=null?Math.max(4,tpct):0)+"%"; tb.className=tc>S.trip.budget?"hot":"cool";
   const el=document.getElementById("cust-list"); el.innerHTML="";
   if(!(S.custom||[]).length){
     el.innerHTML="<div class='pnote' style='margin:0'>Nothing added yet. Gym, car, therapy, a new subscription — whatever the plan doesn't know about yet goes here.</div>";
@@ -1342,11 +1348,6 @@ document.getElementById("bal-save").onclick=()=>{
   const v=parseFloat(document.getElementById("bal-in").value);
   if(isNaN(v))return; S.balance={v, at:todayISO()}; save(); render();
 };
-document.getElementById("trip-flex").onchange=e=>{S.trip.onFlex=e.target.checked; save(); render();};
-document.getElementById("trip-save").onclick=()=>{
-  const v=parseFloat(document.getElementById("trip-in").value);
-  if(isNaN(v))return; S.trip.actual=v; document.getElementById("trip-in").value=""; save(); render();
-};
 document.getElementById("fx-save").onclick=()=>{
   const v=parseFloat(document.getElementById("fx-in").value);
   if(isNaN(v)||v<=0)return; S.rate=v; document.getElementById("fx-in").value=""; save(); render();
@@ -1396,7 +1397,8 @@ document.getElementById("bk-import").onclick=()=>{
     return;
   }
   bkImportArm=false; btn.textContent="Restored";
-  S=Object.assign({spend:{},pays:{},oneoffs:{},trip:{onFlex:true,budget:500,actual:null},legroom:false,balance:{v:-920.10,at:"2026-07-21"},incomes:{},custom:[],pgl:{start:10091.50,at:"2026-07-20",rate:6.0,dedCC:200,dedSep:221,dedNew:470},plan2:{v:139940.18,at:"2026-07-20",rate:6.0,dedCC:237,dedSep:268,dedNew:642},acct:{},amounts:{},env:{},rate:1.70}, obj);
+  S=Object.assign({spend:{},pays:{},oneoffs:{},trip:{onFlex:true,budget:500,actual:null},balance:{v:1216.75,at:"2026-07-29"},incomes:{},custom:[],pgl:{start:10091.50,at:"2026-07-20",rate:6.0,dedCC:200,dedSep:221,dedNew:470},plan2:{v:139940.18,at:"2026-07-20",rate:6.0,dedCC:237,dedSep:268,dedNew:642},acct:{},amounts:{},env:{},rate:1.70}, obj);
+  migrate();
   selDay=null; editPay=null; editOO=null; editAcct=null;
   save(); render();
   setTimeout(()=>{document.getElementById("bk-import").textContent="Restore from the box";},2200);
@@ -1406,7 +1408,7 @@ document.getElementById("reset").onclick=async ()=>{
   const b=document.getElementById("reset");
   if(!resetArm){ resetArm=true; b.textContent="Tap again to wipe everything"; clearTimeout(resetT); resetT=setTimeout(()=>{resetArm=false;b.textContent="Reset everything";},3500); return; }
   resetArm=false; b.textContent="Reset everything";
-  S={spend:{},pays:{},oneoffs:{},trip:{onFlex:true,budget:700,actual:null},legroom:false,balance:{v:-920.10,at:"2026-07-21"},incomes:{},custom:[],pgl:{start:10091.50,at:"2026-07-20",rate:6.0,dedCC:200,dedSep:221,dedNew:470},plan2:{v:139940.18,at:"2026-07-20",rate:6.0,dedCC:237,dedSep:268,dedNew:642},acct:{},amounts:{},env:{},rate:1.70,b30:{on:true,amt:500,onFlex:true},flexOct:{on:true,amt:500},flexAug:{on:true,amt:450},flexSep:{on:true,amt:700},rates:{od:29.0,amex:2.15},flexDay:21,flexLimit:2500,amexLimit:12400,amexFee:650};
+  S={spend:{},pays:{},oneoffs:{},trip:{onFlex:false,budget:500,actual:null},balance:{v:1216.75,at:"2026-07-29"},incomes:{},custom:[],pgl:{start:10091.50,at:"2026-07-20",rate:6.0,dedCC:200,dedSep:221,dedNew:470},plan2:{v:139940.18,at:"2026-07-20",rate:6.0,dedCC:237,dedSep:268,dedNew:642},acct:{},amounts:{},env:{},rate:1.70,b30:{on:true,amt:500,onFlex:false},flexOct:{on:false,amt:500},flexAug:{on:false,amt:450},flexSep:{on:false,amt:700},rates:{od:29.0},flexDay:21,flexLimit:2500};
   selDay=null; editPay=null; editOO=null;
   try{
     if(store==="claude") await window.storage.delete(KEY, false);
@@ -1465,19 +1467,7 @@ window.addEventListener("resize",()=>{ if(activeTab==="pg-picture") render(); })
 (async ()=>{
   await load();
   if(!S.custom) S.custom=[];
-  if(!S.pgl||S.pgl.start==null||S.pgl.start===7000||S.pgl.rate===7.3) S.pgl={start:10091.50,at:"2026-07-20",rate:6.0,dedCC:200,dedSep:221,dedNew:470};
-  if(!S.plan2||S.plan2.rate==null) S.plan2={v:(S.plan2&&S.plan2.v!=null?S.plan2.v:139940.18),at:"2026-07-20",rate:6.0,dedCC:237,dedSep:268,dedNew:642};
-  if(!S.acct) S.acct={};
-  if(!S.b30) S.b30={on:true,amt:500,onFlex:true};
-  if(S.b30.amt===1000) S.b30.amt=500;
-  if(!S.flexOct) S.flexOct={on:true,amt:500};
-  if(!S.flexAug) S.flexAug={on:true,amt:450};
-  if(!S.flexSep) S.flexSep={on:true,amt:700};
-  if(!S.rates) S.rates={od:29.0,amex:2.15};
-  if(S.flexDay==null) S.flexDay=21;
-  if(S.amexFee==null) S.amexFee=650;
-  if(S.flexLimit==null) S.flexLimit=2500;
-  if(S.amexLimit==null) S.amexLimit=12400;
+  migrate();
   if(S.trip && S.trip.budget===700) S.trip.budget=500;
   if(!S.amounts) S.amounts={};
   if(!S.env) S.env={};
