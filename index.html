@@ -400,7 +400,7 @@ textarea#bk-box:focus{outline:2px solid var(--gold);border-color:transparent}
       <button id="imp-add" style="flex:1">Add to those days</button>
       <button class="ghost" id="imp-apply" style="flex:1">Replace those days</button>
     </div>
-    <div class="pnote">It works out which column is which, so any export should do. Anything already dated in your plan — the loan, Flex, Barclaycard, bills, commute, Mounjaro — is left out so it is not counted twice, and income and refunds are ignored. Importing a second account over the same days: use <b>Add</b>. Re-importing the same file to correct it: use <b>Replace</b>.</div>
+    <div class="pnote">It works out which column is which, so any export should do. Income and refunds are ignored. Anything over £100, and anything already dated in your plan, is listed separately and left out by default — tick it back in if it really was day-to-day spending. Amounts are converted into whatever currency that phase is budgeted in, using the statement's own local amount where it has one. Importing a second account over the same days: <b>Add</b>. Re-importing the same file: <b>Replace</b>.</div>
   </div>
 
   <div class="card">
@@ -445,7 +445,7 @@ const P = [
     {id:"o-skin", label:"Skincare / misc buffer", amt:200},
        {id:"o-drinks2", label:"Pre-drinks · 20 Aug", amt:70}
   ]},
- {id:"p2", n:"02", title:"The bridge", from:"2026-08-21", to:"2026-09-24", cur:"£", envelope:810, income:4300, payday:"2026-08-21",
+ {id:"p2", n:"02", title:"The bridge", from:"2026-08-21", to:"2026-09-24", cur:"£", envelope:810, income:4076.26, payday:"2026-08-21",
   note:"£810 covers the last Singapore week, living 1–13 Sep, and lunches once you start on the 14th. Hair and nails are budgeted on 1 Sep, before you start. This stretch runs closest to the overdraft limit — check the Picture weekly. Running low in the final week is planned, not failure."},
  {id:"p3", n:"03", title:"First Carpmaels pay", from:"2026-09-25", to:"2026-10-24", cur:"£", envelope:830, income:3470, incomeEditable:true, payday:"2026-09-25",
   note:"First Carpmaels payslip lands around the 25th–28th. The £700 loan payment is on the 28th — if the payslip is late for a mid-month joiner, that payment is the one at risk, so watch the date. Council tax, energy and cleaner stay with B until next phase."},
@@ -1388,24 +1388,31 @@ function impNum(s){
 }
 /* transactions that are already dated rows in the plan — don't double-count them */
 const IMP_SKIP=/monzo\s*flex|flex\s*payment|loan|barclaycard|amex|american\s*express|council\s*tax|octopus|british\s*gas|e\.?on|edf|thames\s*water|tfl|trainline|southeastern|thameslink|rail|mounjaro|pot\s*transfer|savings|transfer\s*to|standing\s*order/i;
+function impPhaseCur(d){
+  const b=bucketFor(d);
+  if(b==="pre") return P[0].cur;
+  const p=phaseOf(d);
+  return p?p.cur:"£";
+}
+let impTx=null;
 function impRead(){
   const raw=(document.getElementById("imp-box").value||"").trim();
   const prev=document.getElementById("imp-preview");
-  impParsed=null; document.getElementById("imp-actions").style.display="none";
+  impTx=null; impParsed=null; document.getElementById("imp-actions").style.display="none";
   if(!raw){ prev.innerHTML="<div class='pnote' style='margin:8px 0 0'>Paste a CSV first.</div>"; return; }
   const lines=raw.split(/\r?\n/).filter(l=>l.trim());
   if(lines.length<2){ prev.innerHTML="<div class='pnote' style='margin:8px 0 0'>That doesn't look like a CSV — I need a header row and at least one transaction.</div>"; return; }
   const head=csvSplit(lines[0]).map(x=>x.toLowerCase());
   let di=head.findIndex(x=>/date/.test(x));
-  let ai=head.findIndex(x=>/^amount|amount$|paid out|money out|debit|value/.test(x));
+  let ai=head.findIndex(x=>/^amount$|paid out|money out|debit/.test(x));
+  if(ai<0) ai=head.findIndex(x=>/amount/.test(x) && !/local/.test(x));
   let ni=head.findIndex(x=>/name|description|merchant|reference|payee|counter/.test(x));
+  const li=head.findIndex(x=>/local amount/.test(x));
+  const lci=head.findIndex(x=>/local currency/.test(x));
   if(di<0) di=0;
-  if(ai<0) ai=head.findIndex(x=>/amount/.test(x));
-  if(ai<0){ prev.innerHTML="<div class='pnote' style='margin:8px 0 0'>I couldn't find an amount column. Column headers I look for: date, amount (or paid out / money out / debit), and name or description.</div>"; return; }
+  if(ai<0){ prev.innerHTML="<div class='pnote' style='margin:8px 0 0'>I couldn't find an amount column. I look for headers containing: date, amount (or paid out / money out / debit), and name or description.</div>"; return; }
   let outIsPositive=/paid out|money out|debit/.test(head[ai]||"");
   if(!outIsPositive){
-    // Monzo lists spending as negative; Amex lists charges as positive.
-    // Decide from whichever sign dominates the file.
     let pos=0,neg=0;
     for(let i=1;i<lines.length;i++){
       const c=csvSplit(lines[i]);
@@ -1415,40 +1422,81 @@ function impRead(){
     }
     if(pos>neg) outIsPositive=true;
   }
-  const byDay={}, skipped=[];
-  let rows=0;
+  const tx=[];
   for(let i=1;i<lines.length;i++){
     const c=csvSplit(lines[i]);
     const dt=impDate(c[di]); if(!dt) continue;
     let v=impNum(c[ai]); if(isNaN(v)) continue;
-    const name=(ni>=0?c[ni]:"")||"";
-    let spend = outIsPositive ? v : -v;      // normalise: positive = money leaving
-    if(!(spend>0)) continue;                  // ignore income and refunds
-    rows++;
-    if(IMP_SKIP.test(name)){ skipped.push(name.slice(0,28)+" £"+spend.toFixed(2)); continue; }
-    byDay[dt]=(byDay[dt]||0)+spend;
+    let spendAcct = outIsPositive ? v : -v;      // positive = money leaving, in the account's currency
+    if(!(spendAcct>0)) continue;                  // ignore income and refunds
+    const name=((ni>=0?c[ni]:"")||"").trim()||"(no description)";
+    // convert into the currency the phase is budgeted in
+    const pcur=impPhaseCur(dt);
+    let amt=spendAcct, native=null;
+    if(li>=0 && lci>=0){
+      const lv=Math.abs(impNum(c[li])), lc=(c[lci]||"").toUpperCase();
+      if(!isNaN(lv) && lv>0){
+        native=lc;
+        if(pcur==="S$" && lc==="SGD") amt=lv;                 // exact, no rate needed
+        else if(pcur==="£" && lc==="GBP") amt=lv;
+        else amt = pcur==="S$" ? spendAcct*rateFx() : spendAcct;
+      } else amt = pcur==="S$" ? spendAcct*rateFx() : spendAcct;
+    } else {
+      amt = pcur==="S$" ? spendAcct*rateFx() : spendAcct;
+    }
+    const planned=IMP_SKIP.test(name);
+    const gbp = pcur==="S$" ? amt/rateFx() : amt;
+    tx.push({d:dt,name:name,amt:Math.round(amt*100)/100,gbp:gbp,cur:pcur,native:native,
+             planned:planned, big:(gbp>=100), include:!planned && gbp<100});
   }
+  if(!tx.length){ prev.innerHTML="<div class='pnote' style='margin:8px 0 0'>No outgoing transactions found.</div>"; return; }
+  impTx=tx;
+  impRender();
+}
+function impRender(){
+  const prev=document.getElementById("imp-preview");
+  const big=impTx.filter(t=>t.big||t.planned);
+  let html="";
+  if(big.length){
+    html+="<div class='pnote' style='margin:6px 0 4px'><b>Big or already-planned items.</b> Tick anything that was genuine day-to-day spending; leave flights, card payments and transfers unticked.</div>";
+    big.forEach((t,i)=>{
+      html+="<div class='imp-day'><label style='flex:1;display:flex;gap:8px;align-items:center'>"+
+        "<input type='checkbox' data-bigi='"+impTx.indexOf(t)+"' "+(t.include?"checked":"")+">"+
+        "<span>"+t.name.slice(0,26)+" <span style='color:var(--faint)'>"+D(t.d).toLocaleDateString("en-GB",{day:"numeric",month:"short"})+
+        (t.planned?" · in your plan":"")+"</span></span></label><b class='mono'>"+t.cur+fm(t.amt,2)+"</b></div>";
+    });
+  }
+  const byDay={};
+  impTx.filter(t=>t.include).forEach(t=>{ byDay[t.d]=(byDay[t.d]||0)+t.amt; });
   const days=Object.keys(byDay).sort();
+  impParsed=days.length?byDay:null;
   if(!days.length){
-    prev.innerHTML="<div class='pnote' style='margin:8px 0 0'>Found "+rows+" outgoing transaction"+(rows===1?"":"s")+", but every one matched something already in your plan, so there's nothing new to add.</div>";
-    return;
+    html+="<div class='pnote' style='margin:8px 0 0'>Nothing selected to import.</div>";
+    prev.innerHTML=html;
+    document.getElementById("imp-actions").style.display="none";
+    bindImpBoxes(); return;
   }
-  impParsed=byDay;
-  let html="", clashes=0;
+  html+="<div class='pnote' style='margin:10px 0 4px'><b>Daily totals to import</b></div>";
+  let clashes=0;
   days.forEach(d=>{
     const ex=(S.spend[bucketFor(d)]||{})[d];
     if(ex!=null) clashes++;
     html+="<div class='imp-day'><span>"+D(d).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+
       (ex!=null?" <span style='color:var(--faint)'>already "+fm(ex,2)+" → add makes "+fm(ex+byDay[d],2)+"</span>":"")+
-      "</span><b class='mono'>"+fm(byDay[d],2)+"</b></div>";
+      "</span><b class='mono'>"+impPhaseCur(d)+fm(byDay[d],2)+"</b></div>";
   });
-  const tot=days.reduce((s,d)=>s+byDay[d],0);
-  html+="<div class='imp-day'><span><b>"+days.length+" day"+(days.length===1?"":"s")+"</b></span><b class='mono'>"+fm(tot,2)+"</b></div>";
-  html+="<div class='pnote' style='margin:8px 0 0'>Read "+(outIsPositive?"positive":"negative")+" amounts as money going out; income and refunds ignored.</div>";
-  if(skipped.length) html+="<div class='pnote' style='margin:8px 0 0'>Left out "+skipped.length+" transaction"+(skipped.length===1?"":"s")+" already in your plan: "+skipped.slice(0,4).join(", ")+(skipped.length>4?"…":"")+"</div>";
-  if(clashes) html+="<div class='pnote' style='margin:8px 0 0'><b>"+clashes+"</b> of these day"+(clashes===1?" is":"s are")+" already logged. Importing a second account (say Amex after Monzo) should <b>add</b>; re-importing the same export should <b>replace</b>.</div>";
+  const cur=impPhaseCur(days[0]);
+  html+="<div class='imp-day'><span><b>"+days.length+" day"+(days.length===1?"":"s")+"</b></span><b class='mono'>"+cur+fm(days.reduce((s,d)=>s+byDay[d],0),2)+"</b></div>";
+  html+="<div class='pnote' style='margin:8px 0 0'>Amounts are shown in the currency that phase is budgeted in"+(cur==="S$"?" (S$, converted at "+rateFx()+" where the statement was in £)":"")+".</div>";
+  if(clashes) html+="<div class='pnote' style='margin:8px 0 0'><b>"+clashes+"</b> of these day"+(clashes===1?" is":"s are")+" already logged. A second account over the same days → <b>Add</b>. Re-importing the same file → <b>Replace</b>.</div>";
   prev.innerHTML=html;
   document.getElementById("imp-actions").style.display="flex";
+  bindImpBoxes();
+}
+function bindImpBoxes(){
+  document.querySelectorAll("#imp-preview input[data-bigi]").forEach(cb=>{
+    cb.onchange=e=>{ impTx[parseInt(e.target.dataset.bigi,10)].include=e.target.checked; impRender(); };
+  });
 }
 document.getElementById("imp-read").onclick=impRead;
 document.getElementById("imp-clear").onclick=()=>{
